@@ -1,0 +1,6 @@
+dale_out_and_about
+Tired of Monika not having any idea where you're taking her? Use this submod to be more specific in your destination!
+
+To install: place in your DDLC /game directory, under the /Submods folder - newly created, if necessary.
+
+Important: To get updates on this submod as they happen, you MUST have the Submod Updater Plugin! Otherwise you will be stuck on previous versions. Download this here: https://github.com/Booplicate/MAS-Submods-SubmodUpdaterPlugin
