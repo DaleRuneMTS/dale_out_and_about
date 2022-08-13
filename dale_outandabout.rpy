@@ -7,7 +7,7 @@ init -990 python in mas_submod_utils:
         "New to 3.2: by request from AlicornAlley and to a certain extent my_otter_self, you can now take Moni to school! "
         "Further, some of Monika's post-outing topics now possess location awareness, so she'll comment on being in a cat cafe when talking about cat cafes for instance."
         "I've also added minor compatibility with Give Monika a Surname... and something else.",
-        version="3.2",
+        version="3.2.0",
         dependencies={},
         settings_pane=None,
         version_updates={
