@@ -4,13 +4,12 @@ init -990 python in mas_submod_utils:
         author="DaleRuneMTS",
         name="Out and About",
         description="Tired of Monika not having any idea where you're taking her? Use this submod to be more specific in your destination!"
-        "New to 3.2: by request from AlicornAlley and to a certain extent my_otter_self, you can now take Moni to school! "
-        "Further, some of Monika's post-outing topics now possess location awareness, so she'll comment on being in a cat cafe when talking about cat cafes for instance."
-        "I've also added minor compatibility with Give Monika a Surname... and something else.",
-        version="3.2.0",
+        "New to 3.3: fixed some topics being derandomed that weren't supposed to be. Additionally, overrides! And a new camping option.",
+        version="3.3.0",
         dependencies={},
         settings_pane=None,
         version_updates={
+        "DaleRuneMTS_dale_gender_conversation_3_2_0": "DaleRuneMTS_dale_gender_conversation_3_3_0"
         }
     )
 
@@ -173,6 +172,7 @@ label ooa_bye_going_someplace:
                 ("I'm going to a job interview.","ooa_trips_job",False,False),
                 ("I'm taking you to class with me.","ooa_trips_school",False,False),
                 ("Let's go swimming.","ooa_trips_swimming",False,False),
+                ("Let's go camping.","ooa_trips_camping",False,False),
                 ("We're going to a place of worship.","ooa_trips_church",False,False),
                 ("I'm going for a jog.","ooa_trips_jog",False,False),
                 ("Just a grocery run.","ooa_trips_grocery",False,False),
@@ -484,6 +484,7 @@ label ooa_bye_going_someplace_normalplus_flow_aff_check:
             ("I'm taking you to the mall!","ooa_trips_mall",False,False),
             ("We're off to an amusement park.","ooa_trips_themepark",False,False),
             ("Let's go swimming.","ooa_trips_swimming",False,False),
+            ("Let's go camping.","ooa_trips_camping",False,False),
             ("I'm taking you to a convention!","ooa_trips_conventions",False,False),
             ("We're going to a place of worship.","ooa_trips_church",False,False),
             ("I'm going for a jog.","ooa_trips_jog",False,False),
@@ -1314,6 +1315,68 @@ label ooa_trips_swimming:
     $ mas_unlockEventLabel("ooa_monika_swimming")
     jump mas_dockstat_iostart
 
+label ooa_trips_camping:
+    if mas_isMoniUpset(lower=True):
+        if renpy.seen_label("monika_outdoors"):
+            m 1eud "Ah, so you {i}have{/i} been paying attention."
+            m 1ruc "I was beginning to wonder."
+        else:
+            m 1rud "We're going camping? Okay."
+            m 1ruc "Didn't know you liked that kind of thing."
+        m 1gfd "Maybe one of us can do the other a favor and get eaten by bears.{w=1}{nw}"
+        m 1gkc "..."
+        if renpy.random.randint(1,50) == 1 and not renpy.seen_label("ooa_randomlyrolled_cattiness"):
+            jump ooa_randomlyrolled_cattiness
+    else:
+        if "camping" not in persistent._ooa_been_at:
+            m 1wub "Wait, we're going camping?"
+            if not renpy.seen_label("monika_outdoors"):
+                m 3kub "Great timing! I was just about to ask if you'd ever been."
+                m 3fub "And now I get to live it with you!"
+            elif persistent._moni_on_vacation is True:
+                m 3hub "You must really be serious about this vacation, huh?"
+                m 1hua "Getting away from the rat race and into the rough and tumble world..."
+                m "It sounds like great fun."
+            elif mas_isWinter():
+                m 1wud "At this time of year?"
+                m 1ekc "That can't be comfortable, [player]. It's going to get below freezing out there..."
+                m 1etd "...wait, or are you glamping?"
+                $ persistent._ooa_followup_topics.add("glamping")
+                m 1hsa "Cus I wouldn't mind glamping, if it's with you. Just as long as you're sensible about it."
+            else:
+                m 1hub "Hooray!"
+                m "I'm so excited, [player]!"
+                m 4eud "You remembered the bug spray and sunscreen, right?"
+                if not mas_isSummer():
+                    m 3rusdrc "...though I guess those aren't {i}as{/i} necessary at this time of year..."
+                    m 1fub "But it always helps to be prepared!"
+                else:
+                    m 3fub "A safe [player] makes a happy [m_name]~"
+            if renpy.seen_label("monika_stargazing"):
+                m 1wub "Ooh!"
+                m "Maybe we can even see the stars tonight, just like we talked about..."
+                m 1suu "Wouldn't that be wonderful?"
+            $ persistent._ooa_been_at.add("camping")
+        else:
+            m 1eud "Back out into the wilds?"
+            if mas_isWinter():
+                m 1wud "At this time of year?"
+                m 1ekc "That can't be comfortable, [player]. It's going to get below freezing out there..."
+                m 1etd "...wait, or are you glamping?"
+                $ persistent._ooa_followup_topics.add("glamping")
+                m 1hsa "Cus I wouldn't mind glamping, if it's with you. Just as long as you're sensible about it."
+            else:
+                m 1hub "Great!"
+                m 4eud "You remembered the bug spray and sunscreen, right?"
+                if not mas_isSummer():
+                    m 3rusdrc "...though I guess those aren't {i}as{/i} necessary at this time of year..."
+                    m 1fub "But it always helps to be prepared!"
+                else:
+                    m 4euc "...{nw}"
+                    extend 3eka "I know, I know."
+                    m "I just want you to be careful, that's all."
+    jump mas_dockstat_iostart
+
 label ooa_trips_conventions:
     if "convention" not in persistent._ooa_been_at and not renpy.seen_label("monika_conventions"):
         m 1sub "A convention!"
@@ -2043,7 +2106,7 @@ init 5 python:
             category=["romance","location"],
             prompt="Weddings",
             aff_range=(mas_aff.ENAMORED, None),
-            random="True"
+            random=True
         )
     )
 
@@ -2165,7 +2228,7 @@ init 5 python:
             category=["society","location"],
             prompt="Malls",
             aff_range=(mas_aff.AFFECTIONATE, None),
-            random="True"
+            random=True
         )
     )
 
@@ -2255,6 +2318,41 @@ init 5 python:
     addEvent(
         Event(
             persistent._mas_songs_database,
+            eventlabel="mas_song_ourhouse",
+            category=[store.mas_songs.TYPE_SHORT],
+            prompt="Our House",
+            random=False,
+            conditional='"campfire" in persistent._ooa_been_at',
+            action=EV_ACT_RANDOM,
+            aff_range=(mas_aff.AFFECTIONATE, None)
+        ),
+        code="SNG"
+    )
+
+label mas_song_ourhouse:
+    m 1eub "{i}~I'll light the fire~{i}"
+    m 3eub "{i}~You place the flowers in the vase that you bought today~{i}"
+    m 1euu "{i}~Staring at the fire~{i}"
+    m "{i}~For hours and hours while I listen to you~{i}"
+    m 1fub "{i}~Play your love songs all night long for me~{i}"
+    m 1fublb "{i}~Only for me~{i}"
+    m 5fublb "{i}~Come to me now, come to me now~{i}"
+    m "{i}~And rest your head for just five minutes~{i}"
+    m 5dubla "{i}~Everything is done~{i}"
+    m 5rublb "{i}~Such a cozy room, such a cozy room~{i}"
+    m "{i}~The windows are illuminated~{i}"
+    m "{i}~By the [mas_globals.time_of_day_3state] sunshine through them~{i}"
+    m 5hublb "{i}~Fiery gems for you, only for you~{i}"
+    m 5hubla "..."
+    m 5eubld "Sorry, I'm..."
+    m 1eubla "Just practicing some campfire songs for when we next go camping."
+    m "That's all."
+    return
+
+init 5 python:
+    addEvent(
+        Event(
+            persistent._mas_songs_database,
             eventlabel="mas_song_church",
             category=[store.mas_songs.TYPE_SHORT],
             prompt="Take Me to Church",
@@ -2322,7 +2420,7 @@ init 5 python:
             category=["advice","location"],
             prompt="Running vs Jogging",
             aff_range=(mas_aff.AFFECTIONATE, None),
-            random="True"
+            random=True
         )
     )
 
@@ -2559,3 +2657,273 @@ label monika_mhhiyh:
 
         show monika 1eua zorder MAS_MONIKA_Z at t11 with dissolve_monika
     return
+
+init 5 python:
+    addEvent(
+        Event(persistent.event_database,
+            eventlabel='monika_glamping',
+            category=["nature"],
+            prompt="What on earth is 'glamping'?",
+            conditional='"glamping" in persistent._ooa_followup_topics',
+            unlocked=False,
+            pool=True,
+            rules={"no_unlock": None}
+        )
+    )
+
+label monika_glamping:
+    m 1wud "Gla-{w=1}{nw}"
+    m 3gsd "You know..."
+    m 1esc "Glamping."
+    m "Glam camping."
+    m 1etc "It's like regular camping, except... glam."
+    m 3esd "Instead of going out into the woods with a tent, some firewood and a fishing pole..."
+    m "...you're out in the woods with gas, lighting, refrigeration, luxuries like that."
+    m 3wud "Sometimes you're not even in a tent! You're in a hut or a treehouse provided by a resort or something."
+    m 4ruc "While it's only been called glamping for a little over a decade, the practice actually started as far back as the 16th century."
+    m 4eud "The third Earl of Atholl set up a series of lavish tents and provisions for the benefit of King James V, who was visiting at the time."
+    m 3euo "The cost of the food alone... I think it'd equate to over $500,000 today."
+    m 3ftc "Of course, that {i}was{/i} for a king, so luxuries are to be expected..."
+    m 1euc "...but that's where the principle of it came from."
+    m 2tsd "I'll be honest: I'm not really a fan."
+    m "As a species, we already take far more from nature than we can feasibly give back."
+    m 2tfd "{i}Invading{/i} nature with our comforts rather than appreciating it on its level? That feels like cheating to me."
+    m 1ekc "But as I said before: if you end up doing it and enjoying it..."
+    m 1eku "...I think I'll be able to bear the luxury with you."
+    m "As long as you're very careful not to do too much damage."
+    m 7eua "But you wouldn't do that, would you, [player]?"
+    return
+
+init 1 python:
+    config.label_overrides["monika_outdoors"] = "ooa_monika_outdoors_override"
+
+label ooa_monika_outdoors_override:
+    if "camping" not in persistent._ooa_been_at:
+        m 1eua "Do you ever go camping, [player]?"
+        m 3eub "It's a wonderful way to relax, get some fresh air, and see the parks around you!"
+        m 1huu "It's almost like a more relaxed backpacking trip, actually."
+        m 1eka "But while it is a good way to spend time outdoors, there are several dangers that most people don't bother to think about."
+        m 3euc "A good example would be bug spray or sunscreen. Many people forget or even forgo them,{w=0.5} thinking they're unimportant..."
+    else:
+        m 3eub "I hope we get to go camping together again one day, [player]."
+        m "It was wonderful, imagining myself out in the fresh air with you."
+        m 1fua "Out in the {i}world{/i} with you."
+        m 1huu "...yeah. Truly wonderful."
+        m 1rub "Hopefully I may even be in your reality by then!"
+        m 3eka "Well, I say 'hopefully', but that'll mean I need more protection from the elements, won't it?"
+        m 3euc "Like bug spray and sunscreen and stuff."
+        m "Many people forget or even forgo these things,{w=0.5} thinking they're unimportant..."
+    m 1eksdld "And without them, sunburns are almost inevitable, and many insects carry diseases that can really harm you."
+    m 1ekd "It may be a bit of a pain, but if you don't use them, you might end up miserable, or even get really sick."
+    if "camping" not in persistent._ooa_been_at:
+        m 1eka "So, please promise me that the next time you go outdoors, be it camping or backpacking, you won't forget them."
+    else:
+        m 1eka "So please remind me we need to bring them along next time. I just {i}know{/i} I'll forget in the excitement."
+
+    if mas_isMoniAff(higher=True):
+        m 1eub "But, on the bright side..."
+        if "camping" not in persistent._ooa_been_at:
+            m 1rkbsa "Once I cross over, if you remember to bring the sunscreen..."
+        else:
+            m 1rkbsa "...if we {i}do{/i} end up remembering the sunscreen..."
+        m 1tubsa "I might need a little help putting it on."
+        m 1hubsb "Ahaha!"
+        m 1efu "I'm only teasing you, [mas_get_player_nickname()]."
+        m 1tsu "Well, at least a little. Ehehe~"
+    return
+
+init 1 python:
+    config.label_overrides["monika_concerts"] = "ooa_monika_concerts_override"
+
+label ooa_monika_concerts_override:
+    if "concert" not in persistent._ooa_been_at:
+        m 1euc "Hey [player], I've been thinking about something we could do together one day..."
+        m 1eud "You know how I like different forms of music?"
+        m 1hua "Well..."
+        m 3eub "Why don't we go to a concert?"
+        m 1eub "I hear that the atmosphere at a concert can really make you feel alive!"
+        m 1eua "Are there any other types of music you'd like to see live that we haven't talked about yet?{nw}"
+        $ othertypes = "Are there any other types of music you'd like to see live that we haven't talked about yet?"
+    else:
+        m 1tuu "Sometimes I think you might be psychic, [player]."
+        m "I do all this set-up for you, talking about different types of music that we might enjoy together..."
+        m 1wub "...and then you take me to a concert before I even get to bring it up myself!"
+        m 3hub "You really are an attentive [bf]."
+        m 2fuc "...unless you looked at my scripts and knew this was coming?"
+        m "In which case: "
+        extend 2tuu "naughty [boy]."
+        m 1huu "Ehehe~"
+        m "...{nw}"
+        extend 1eud "But if we were to do that again someday..."
+        m "Like after I crossed over, for example..."
+        m 1eua "...would there be any other types of music you'd like to see live with me, besides what we've discussed?{nw}"
+        $ othertypes = "...would there be any other types of music you'd like to see live with me, besides what we've discussed?"
+
+    $ _history_list.pop()
+    menu:
+        m "[othertypes]{fast}"
+        "Yes.":
+            $ persistent._mas_pm_like_other_music = True
+            m 3eua "Great!"
+
+            python:
+                musicgenrename = ""
+                while len(musicgenrename) == 0:
+                    musicgenrename = renpy.input(
+                        'What kind of music do you listen to?',
+                        length=15,
+                        allow=letters_only
+                    ).strip(' \t\n\r')
+
+                tempmusicgenre = musicgenrename.lower()
+                persistent._mas_pm_like_other_music_history.append((
+                    datetime.datetime.now(),
+                    tempmusicgenre
+                ))
+
+
+            m 1eua "Interesting..."
+            show monika 3hub
+            $ renpy.say(m, "I'd love to go to {0} concert with you!".format(mas_a_an_str(tempmusicgenre)))
+        "No.":
+
+            if (
+                not persistent._mas_pm_like_vocaloids
+                and not persistent._mas_pm_like_rap
+                and not persistent._mas_pm_like_rock_n_roll
+                and not persistent._mas_pm_like_orchestral_music
+                and not persistent._mas_pm_like_jazz
+            ):
+                $ persistent._mas_pm_like_other_music = False
+                m 1ekc "Oh... Well that's okay, [player]..."
+                m 1eka "I'm sure we can find something else to do."
+                return
+            else:
+
+                $ persistent._mas_pm_like_other_music = False
+                m 1eua "Okay, [mas_get_player_nickname()], we'll just choose from the other types of music we've already discussed!"
+
+    m 1hua "Just imagine us..."
+    if persistent._mas_pm_like_orchestral_music:
+        m 1hua "Gently swaying our heads to the sound of a soothing orchestra..."
+
+    if persistent._mas_pm_like_rock_n_roll:
+        m 1hub "Jumping up and down with the rest of the crowd to some good ol' rock 'n' roll..."
+
+    if persistent._mas_pm_like_jazz:
+        m 1eua "Grooving to some smooth jazz..."
+
+    if persistent._mas_pm_like_rap:
+        m 1hksdlb "Trying to keep up with a real rapper..."
+
+    if persistent._mas_pm_like_vocaloids:
+        m 1hua "Waving our glowsticks at Miku Expo..."
+
+    if persistent._mas_pm_like_other_music:
+        m 1hua "Jamming along to your favorite [tempmusicgenre] artist..."
+
+    m 2hub "Doesn't that sound just amazing?"
+    m 2eud "The idea of seeing your idol performing right in front of you is incredible!"
+    m 2lksdla "Although, ticket prices these days are kind of expensive..."
+    m 2hua "But I still think it would be worth it!"
+    if "concert" not in persistent._ooa_been_at:
+        m 3eua "Do you know any bands or musicians that we should see live, [player]?"
+        m 3eub "I would {i}love{/i} to see them if {i}you{/i} like them."
+        m 5eua "And if you were to take me,{w=1} then that would truly be a dream come true!"
+        m 4eua "But if you're not that interested in concerts..."
+        m 1eua "Then we could always snuggle under a blanket and put on a record or CD at home!"
+    else:
+        m 3eua "Do you know any more bands or musicians that we should see live, [player]?"
+        m 3eub "I would {i}love{/i} to see them if {i}you{/i} like them."
+        m 4eua "But if you'd rather stay at home once in a while instead..."
+        m 1eua "Then we could always snuggle under a blanket and put on a record or CD!"
+    m 1hua "That would be more than enough for me, ehehe~"
+    if (
+        not renpy.seen_label("monika_add_custom_music_instruct")
+        and not persistent._mas_pm_added_custom_bgm
+    ):
+        m 1eua "In the meantime, if you want to share your favorite music with me, it's really easy to do so!"
+        m 3eua "All you have to do is follow these steps..."
+        call monika_add_custom_music_instruct
+    return "derandom"
+
+init 1 python:
+    config.label_overrides["monika_date"] = "ooa_monika_date_override"
+
+label ooa_monika_date_override:
+    m 1hub "I've been imagining all the romantic things we could do if we went on a date..."
+    if "cafe" not in persistent._ooa_been_at:
+        m 3eua "We could get lunch, go to a cafe..."
+    else:
+        m 3eua "We could find another cafe to go to in your world..."
+        m 3nua "I'm sure we haven't exhausted all the options yet!"
+    if "mall" not in persistent._ooa_been_at:
+        m 3eua "Go shopping together..."
+        m 1eua "I love shopping for skirts and bows."
+        m 3hub "Or maybe a bookstore!"
+        m 3hua "That would be appropriate, right?"
+        m 1eua "But I'd really love to go to a chocolate store."
+        m 3hub "They have so many free samples. Ahaha!"
+    else:
+        m 3eua "Find some more stores we haven't already exhausted..."
+        if len(store.mas_selspr.filter_clothes(True)) == 1:
+            m 6lusdrd "Don't get me wrong, these clothes are comfortable, "
+        else:
+            m 6lusdrb "The clothes you've given me have been amazing and everything, "
+        extend 7rssdrd "but I kinda want to see what fashion choices there are for..."
+        m 7essdrd "You know, {i}flesh-and-blood{/i} girls."
+        m 1eua "Even if they don't look that good on me, the experience of trying them on is one I always appreciate."
+    if "movie" not in persistent._ooa_been_at:
+        m 1eua "And of course, we'd see a movie or something..."
+    else:
+        m 1eua "And of course, movies are always on the table!"
+        m "Even if there's nothing but reruns on..."
+        m 1dubla "...it makes no difference to how comfy your shoulder would be~"
+    m 1eka "Gosh, it all sounds like a dream come true."
+    m "When you're here, everything that we do is fun."
+    m 1ekbsa "I'm so happy that I'm your girlfriend, [player]."
+    m 1hubfa "I'll make you a proud [bf]~"
+    return
+
+init 1 python:
+    config.label_overrides["monika_amusementpark"] = "ooa_monika_amusementpark_override"
+
+label ooa_monika_amusementpark_override:
+    m 1eua "Hey, [player]..."
+    if "themepark" not in persistent._ooa_been_at:
+        m 3eua "Have you ever been to an amusement park?{nw}"
+        $ _history_list.pop()
+        menu:
+            m "Have you ever been to an amusement park?{fast}"
+            "Yes.":
+                $ persistent._mas_pm_has_been_to_amusement_park = True
+                m 1sub "Really? It must have been a lot of fun!"
+                m 1eub "I've never been to one myself, but I'd really love to go."
+                m 1hua "Maybe you could take me to one someday!"
+            "No.":
+
+                $ persistent._mas_pm_has_been_to_amusement_park = False
+                m 1eka "Really? That's too bad."
+                m 3hua "I've always heard that they're a lot of fun."
+                m 1rksdla "I've never had the chance to go to one myself, but I hope I can someday."
+                m 1eub "Maybe we could go together!"
+
+        m 3hua "Wouldn't that be great, [mas_get_player_nickname()]?"
+        m 3eua "Thrilling roller coasters, water rides, drop towers..."
+        m 3tubsb "And maybe even a romantic Ferris wheel ride~"
+    else:
+        m 3eua "Have you ever been to an amusement park?"
+        m 3wuc "...{nw}"
+        extend 3husdrb "Wait, what am I saying? Of course you have!"
+        m 1eua "You've even taken me to one."
+        m "Thank you again for that, [player]."
+        m "It was almost everything I dreamed it would be."
+        m 1mublc "...well, obviously, it'd only be {i}exactly{/i} how I dreamed it if I were there with you in your world."
+        m 1eubld "Feeling the highs and lows myself..."
+        m 1wublb "Seeing the adrenaline on your face..."
+        m 1eubsa "...holding your hand on that ferris wheel."
+        m "If we could do that for real someday, that would be..."
+        m 5dubsb "Oh, it'd be truly magical."
+    show monika 5hubfa zorder MAS_MONIKA_Z at t11 with dissolve_monika
+    m 5hubfa "Ehehe, I'm getting a bit carried away, but I just can't help it when thinking about being with you~"
+    return "derandom"
