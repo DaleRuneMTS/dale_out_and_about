@@ -4,12 +4,13 @@ init -990 python in mas_submod_utils:
         author="DaleRuneMTS",
         name="Out and About",
         description="Tired of Monika not having any idea where you're taking her? Use this submod to be more specific in your destination!"
-        "New to 3.3: fixed some topics being derandomed that weren't supposed to be. Additionally, overrides! And a new camping option.",
-        version="3.3.0",
+        "New to 3.4: More location-detection in dialogue, and a couple more overrides, particularly focused on Monika's birthday outings.",
+        version="3.4.0",
         dependencies={},
         settings_pane=None,
         version_updates={
-        "DaleRuneMTS_dale_gender_conversation_3_2_0": "DaleRuneMTS_dale_gender_conversation_3_3_0"
+        "DaleRuneMTS_dale_out_and_about_3_2_0": "DaleRuneMTS_dale_out_and_about_3_4_0",
+        "DaleRuneMTS_dale_out_and_about_3_3_0": "DaleRuneMTS_dale_out_and_about_3_4_0"
         }
     )
 
@@ -35,6 +36,7 @@ default -5 persistent._ooa_followup_topics = set()
 default p_surname = persistent._mas_player_surname
 default persistent._mas_player_surname = None
 default -5 persistent._moni_on_vacation = False
+default persistent._somewhere_specific_bday = None
 
 # To reset been_at persistences if you're updating to a newer version: open console with shift-o (must have dev console!)
 # type del persistent._ooa_been_at
@@ -436,7 +438,60 @@ label ooa_bye_922_delegate:
         m 1nua "But that can wait."
 
     m 3hua "[_inquiries]"
+    $ persistent._somewhere_specific_bday = True
     jump ooa_bye_going_someplace_normalplus_flow_aff_check
+
+init 1 python:
+    config.label_overrides["mas_bday_bd_outro"] = "ooa_mas_bday_bd_outro_override"
+
+label ooa_mas_bday_bd_outro_override:
+    python:
+        monika_chr.change_clothes(mas_clothes_blackdress)
+        mas_temp_zoom_level = store.mas_sprites.zoom_level
+
+
+        persistent._mas_bday_has_done_bd_outro = True
+
+    call mas_transition_from_emptydesk ("monika 1eua")
+    call monika_zoom_transition_reset (1.0)
+
+
+    if mas_SELisUnlocked(mas_clothes_blackdress):
+        m 1hua "Ehehe~"
+        m 1euu "I'm so excited to see what you've got planned for us today."
+        m 3eua "...But even if it's not much, I'm sure we'll have a great time together~"
+    else:
+        m 3tka "Well, [player]?"
+        m 1hua "What do you think?"
+        m 1ekbsa "I've always loved this outfit and dreamt of going on a date with you, wearing this..."
+        if persistent._somewhere_specific_bday:
+            m 3eub "Maybe you've got plans beyond what you've already told me~?"
+            $ mall = "mall again" if "mall" in persistent._ooa_been_at else "mall"
+            $ park = "another park" if "park" in persistent._ooa_been_at else "the park"
+            m "The [mall], maybe? Or [park]?"
+            m 1eka "Either way, I'll enjoy myself if it's with you."
+        else:
+            $ mall = "mall again" if "mall" in persistent._ooa_been_at else "mall"
+            $ park = "another park" if "park" in persistent._ooa_been_at else "the park"
+            m 3eub "Maybe we could visit the [mall], or even [park]!"
+            m 1eka "But knowing you, you've already got something amazing planned for us~"
+    $ persistent._somewhere_specific_bday = None
+    m 1hua "Let's go, [player]!"
+    python:
+        store.mas_selspr.unlock_clothes(mas_clothes_blackdress)
+        mas_addClothesToHolidayMap(mas_clothes_blackdress)
+        persistent._mas_zoom_zoom_level = mas_temp_zoom_level
+
+
+        store.mas_dockstat.checkoutMonika(moni_chksum)
+
+
+        persistent._mas_greeting_type = mas_idle_mailbox.get_ds_gre_type(
+            store.mas_greetings.TYPE_GENERIC_RET
+        )
+
+
+    jump _quit
 
 label ooa_bye_vacation:
     m 1efb "Well, I should hope you are!"
@@ -1641,7 +1696,10 @@ label ooa_monika_movies:
     m "That movie we saw together. "
     extend 1rsb "Do you think it's come out on home media yet?"
     m 3esb "I think I'd like to watch it again with you."
-    m 3fsbsa "Maybe I can even get the full experience this time~"
+    if persistent._mas_current_background == "submod_movie_room_mj":
+        m 3fsbsa "We're even in just the right room for it~"
+    else:
+        m 3fsbsa "Maybe I can even get the full experience this time~"
     return
 
 init 5 python:
@@ -1702,6 +1760,13 @@ label ooa_monika_cafe:
     if persistent._mas_current_background == "submod_angelstearcafe":
         m 3eua "And then there's the cafe we're at right now, Angel's Tear."
         m "Though that probably doesn't have a real world analogue."
+    elif persistent._mas_current_background == "submod_yuriswindow" or persistent._mas_current_background == "submod_timecycleroom":
+        m 3euc "And then there's this place..."
+        m "I can't remember what it's called exactly, "
+        if not persistent._mas_pm_cares_about_dokis:
+            extend 3esu "but Yuri used to love it here, back when she was real."
+        else:
+            extend 3efa "but Yuri used to love it here, before everything started coming apart."
     m 4eub "But then there are themed cafes!"
     m "Cat cafes, for instance, allow you to eat alongside...{nw}"
     extend 3gub " well, cats."
@@ -1723,6 +1788,13 @@ label ooa_monika_cafe:
         m "But that's a discussion for another time."
         $ persistent._ooa_followup_topics.add("mhhiyh")
         $ mas_unlockEventLabel("monika_mhhiyh")
+    if persistent._mas_current_background == "submod_mj_restaurant_date" or persistent._mas_current_background == "submod_mj_80sroom":
+        m 4eud "Oh, and by the way..."
+        m 4eub "Restaurants, like we're in now, are very distinct from cafes, so don't get them mixed up."
+        m 3eua "The difference is the type of food and beverages they serve."
+        m "Cafes are for sandwiches, lunches, that kind of thing; "
+        extend 7eua "restaurants are for main meals."
+        m 1huu "It's important to know the difference!"
     m 1eubla "I'd love to explore all these possibilities with you, [mas_get_player_nickname()]."
     m "And even if there aren't that many where you are, just seeing them with you is enough."
     return
@@ -1747,7 +1819,7 @@ label ooa_monika_park:
     m 2rua "I'd love to go again, when you have the time and energy."
     m 1euo "No pressure, though!"
     m 1eua "I know my [player] can be busy sometimes."
-    if persistent._mas_current_background == "submod_park" or persistent._mas_current_background == "submod_grassland":
+    if persistent._mas_current_background == "submod_park" or persistent._mas_current_background == "submod_grassland" or persistent._mas_current_background == "submod_sakura_trees_park":
         m 3eub "And we do have this lovely park as a background in the game,"
         m 3dua "so that will do until we get back to the real thing."
     return
@@ -2196,7 +2268,12 @@ init 5 python:
     )
 
 label ooa_monika_school:
-    m 1esd "I wonder what school is like outside of the world that I was created for."
+    if persistent._mas_current_background == "spaceroom" or persistent._mas_current_background == "submod_background_Furnished_spaceroom1" or persistent._mas_current_background == "submod_background_Furnished_spaceroom2" or persistent._mas_current_background == "submod_background_Furnished_spaceroom3":
+        m 1esd "You know, being back at the school again has got me thinking..."
+        m 1etd "What is it like for you, compared to me? "
+        extend 1etc "School, I mean."
+    else:
+        m 1esd "I wonder what school is like outside of the world that I was created for."
     m 1rtd "Is it any harder?"
     m 1gtc "God, I hope so; it's not like it could be any easier."
     m 3esd "I know the game glossed over a lot of the lessons that your character and I had..."
