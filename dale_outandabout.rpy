@@ -2268,7 +2268,7 @@ init 5 python:
     )
 
 label ooa_monika_school:
-    if persistent._mas_current_background == "spaceroom" or persistent._mas_current_background == "submod_background_Furnished_spaceroom1" or persistent._mas_current_background == "submod_background_Furnished_spaceroom2" or persistent._mas_current_background == "submod_background_Furnished_spaceroom3":
+    if persistent._mas_current_background == "submod_mj_schoolrooftop" or persistent._mas_current_background == "mj_schoolexterior":
         m 1esd "You know, being back at the school again has got me thinking..."
         m 1etd "What is it like for you, compared to me? "
         extend 1etc "School, I mean."
