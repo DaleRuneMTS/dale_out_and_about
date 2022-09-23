@@ -4,13 +4,14 @@ init -990 python in mas_submod_utils:
         author="DaleRuneMTS",
         name="Out and About",
         description="Tired of Monika not having any idea where you're taking her? Use this submod to be more specific in your destination!"
-        "New to 3.4: More location-detection in dialogue, and a couple more overrides, particularly focused on Monika's birthday outings.",
-        version="3.4.0",
+        "New to 3.4.1: Important bugfix!",
+        version="3.4.1",
         dependencies={},
         settings_pane=None,
         version_updates={
-        "DaleRuneMTS_dale_out_and_about_3_2_0": "DaleRuneMTS_dale_out_and_about_3_4_0",
-        "DaleRuneMTS_dale_out_and_about_3_3_0": "DaleRuneMTS_dale_out_and_about_3_4_0"
+        "DaleRuneMTS_dale_out_and_about_3_2_0": "DaleRuneMTS_dale_out_and_about_3_4_1",
+        "DaleRuneMTS_dale_out_and_about_3_3_0": "DaleRuneMTS_dale_out_and_about_3_4_1",
+        "DaleRuneMTS_dale_out_and_about_3_4_0": "DaleRuneMTS_dale_out_and_about_3_4_1"
         }
     )
 
@@ -1998,18 +1999,18 @@ label ooa_monika_party:
     m 1eub "When do you think we'll next be able to go to a party, [mas_get_player_nickname()]?"
     m "I remember quite liking the last one."
     m 5rtc "Let's see..."
-    if (persistent._mas_player_bday - datetime.timedelta(days=7)) <= today <= persistent._mas_player_bday:
+    if (persistent._mas_player_bday - datetime.timedelta(days=7)) < datetime.date.today() < persistent._mas_player_bday:
         m 5eub "Well, someone's birthday is coming up, "
         extend 5nub "not naming any [player]s here. Maybe you can indulge a little?"
     elif mas_isD25Pre(_date=None):
         m 5etb "Well, I know Christmas is coming up, so there should be at least a few parties going on for that!"
     elif mas_isD25Post(_date=None):
         m 5etb "Well, New Year's Eve is coming up soon. Maybe there'll be a party to celebrate that?"
-    elif (mas_o31 - datetime.timedelta(days=5)) <= today <= o31:
+    elif (mas_o31 - datetime.timedelta(days=5)) < datetime.date.today() < o31:
         m 5wub "Oh! Halloween's coming up. There's bound to be a party going on on {i}that{/i} day!"
-    elif (mas_f14 - datetime.timedelta(days=3)) <= today <= mas_f14:
+    elif (mas_f14 - datetime.timedelta(days=3)) < datetime.date.today() < mas_f14:
         m 5fub "Valentine's Day is going to be soon... do people typically do parties for that day?"
-    elif (mas_monika_birthday - datetime.timedelta(days=7)) <= today <= mas_monika_birthday:
+    elif (mas_monika_birthday - datetime.timedelta(days=7)) < datetime.date.today() < mas_monika_birthday:
         m 5eua "Well, my birthday's coming up..."
         m 5luc "Agh. Is saying that going to come off pushy?"
         m 5lua "Oh well."
@@ -3004,3 +3005,21 @@ label ooa_monika_amusementpark_override:
     show monika 5hubfa zorder MAS_MONIKA_Z at t11 with dissolve_monika
     m 5hubfa "Ehehe, I'm getting a bit carried away, but I just can't help it when thinking about being with you~"
     return "derandom"
+
+init 1 python:
+    config.label_overrides["monika_introduce"] = "ooa_monika_introduce_override"
+
+label ooa_monika_introduce_override:
+    if "friends" not in persistent._ooa_been_at:
+        m 1eua "[player], would you ever introduce your friends to me?"
+        m 1hua "I don't know why, but I get really excited when I think about you wanting to show off our relationship like that."
+        m 1eua "Maybe it's because I really want to be someone who makes you proud."
+    else:
+        m 1eua "[player], I know we've hung out with your friends together..."
+        m 1eusdrb "...but I hope you've actually introduced me to them too. Properly, I mean."
+        m 1hua "I'd love to be important enough in your life that you feel proud of us."
+        m "Proud of me."
+        m 1fua "You know?"
+    m 1eua "I feel like I would try extra hard to improve myself if you told me it made you proud of me."
+    m 1hub "I hope it's the same the other way around, too."
+    return
