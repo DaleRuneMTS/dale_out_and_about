@@ -4,14 +4,15 @@ init -990 python in mas_submod_utils:
         author="DaleRuneMTS",
         name="Out and About",
         description="Tired of Monika not having any idea where you're taking her? Use this submod to be more specific in your destination!"
-        "New to 3.4.1: Important bugfix!",
-        version="3.4.1",
+        "New to 3.5.0: You can now take her to your music lessons! There's also a major bugfix for the post-party and pre-parade topics; unfortunately, the number of occasions she can assume these are for had to be significantly reduced.",
+        version="3.5.0",
         dependencies={},
         settings_pane=None,
         version_updates={
-        "DaleRuneMTS_dale_out_and_about_3_2_0": "DaleRuneMTS_dale_out_and_about_3_4_1",
-        "DaleRuneMTS_dale_out_and_about_3_3_0": "DaleRuneMTS_dale_out_and_about_3_4_1",
-        "DaleRuneMTS_dale_out_and_about_3_4_0": "DaleRuneMTS_dale_out_and_about_3_4_1"
+        "DaleRuneMTS_dale_out_and_about_3_2_0": "DaleRuneMTS_dale_out_and_about_3_5_0",
+        "DaleRuneMTS_dale_out_and_about_3_3_0": "DaleRuneMTS_dale_out_and_about_3_5_0",
+        "DaleRuneMTS_dale_out_and_about_3_4_0": "DaleRuneMTS_dale_out_and_about_3_5_0",
+        "DaleRuneMTS_dale_out_and_about_3_4_1": "DaleRuneMTS_dale_out_and_about_3_5_0"
         }
     )
 
@@ -38,6 +39,7 @@ default p_surname = persistent._mas_player_surname
 default persistent._mas_player_surname = None
 default -5 persistent._moni_on_vacation = False
 default persistent._somewhere_specific_bday = None
+default -5 persistent._mas_pm_instrument_specific = None
 
 # To reset been_at persistences if you're updating to a newer version: open console with shift-o (must have dev console!)
 # type del persistent._ooa_been_at
@@ -174,6 +176,7 @@ label ooa_bye_going_someplace:
                 ("We're off to a concert.","ooa_trips_concert",False,False),
                 ("I'm going to a job interview.","ooa_trips_job",False,False),
                 ("I'm taking you to class with me.","ooa_trips_school",False,False),
+                ("We're going to my music lessons.","ooa_trips_music",False,False),
                 ("Let's go swimming.","ooa_trips_swimming",False,False),
                 ("Let's go camping.","ooa_trips_camping",False,False),
                 ("We're going to a place of worship.","ooa_trips_church",False,False),
@@ -537,6 +540,7 @@ label ooa_bye_going_someplace_normalplus_flow_aff_check:
             ("We're off to a wedding.","ooa_trips_wedding",False,False),
             ("I'm going to a job interview.","ooa_trips_job",False,False),
             ("I'm taking you to class with me.","ooa_trips_school",False,False),
+            ("We're going to my music lessons.","ooa_trips_music",False,False),
             ("I'm taking you to the mall!","ooa_trips_mall",False,False),
             ("We're off to an amusement park.","ooa_trips_themepark",False,False),
             ("Let's go swimming.","ooa_trips_swimming",False,False),
@@ -949,9 +953,6 @@ label ooa_trips_party:
                 m 1kub "...you're sure to be the most popular [boy] at that party!"
     jump mas_dockstat_iostart
 
-define mas_tgv = datetime.date(datetime.date.today().year, 11, 30)
-define mas_j4 = datetime.date(datetime.date.today().year, 7, 4)
-
 label ooa_trips_parade:
     if mas_isMoniUpset(lower=True):
         m 1tuc "A parade, huh?"
@@ -969,22 +970,12 @@ label ooa_trips_parade:
             $ persistent._ooa_been_at.add("parade")
             $ mas_unlockEventLabel("ooa_monika_parade")
         m 1hub "I'd love to go with you, [player]."
-        if mas_genDateRange(persistent._mas_player_bday-datetime.timedelta(days=7), persistent._mas_player_bday):
-            m 3rud "I didn't think they did parades specifically for birthdays..."
-            m 3kua "...but it {i}is{/i} yours, so I guess I can understand that."
-        elif mas_isD25Pre(_date=None):
+        if mas_isD25Pre(_date=None):
             m "Christmas parades are pretty spectacular, as I recall."
             m 1eua "Just remember to wrap up warm, okay?"
             m 1fublu "You'll be the one doing most of the hugging!"
         elif mas_isD25Post(_date=None):
             m 3eua "I didn't think they still did New Years parades, so this should be an experience!"
-        elif mas_genDateRange(mas_o31-datetime.timedelta(days=5), mas_o31):
-            m 4wub "Don't forget to dress up! It is spooky season, after all~"
-        elif mas_genDateRange(mas_tgv-datetime.timedelta(days=14), mas_tgv):
-            m 3lua "I don't think I've been to a proper Thanksgiving parade before..."
-            m "I hope it's as good as I remember it being on TV!"
-        elif mas_genDateRange(mas_j4-datetime.timedelta(days=1), mas_j4) and persistent._mas_pm_live_south_hemisphere = False:
-            m "Let's bring in the Fourth of July in style!"
         else:
             m 1eub "Whatever the occasion, it's all the more wonderful if I get to be with you."
     jump mas_dockstat_iostart
@@ -1274,6 +1265,66 @@ label ooa_trips_school:
             m 3esb "We're off to school again!"
             m 1esbsa "I hope we have a good day together, senpai~"
     $ mas_unlockEventLabel("ooa_monika_school")
+    jump mas_dockstat_iostart
+
+label ooa_trips_music:
+    if mas_isMoniUpset(lower=True):
+        if "music" not in persistent._ooa_been_at:
+            if renpy.seen_label("monika_orchestra"):
+                m 1wud "Music le...?"
+                m 1ruc "..."
+                m "That's - "
+                extend 1fua "that's actually very sweet of you, [player]."
+                m "Shows you've been listening."
+                m 1eua "Thank you for thinking of me. I'd be happy to come along."
+            else:
+                m 1esd "...huh.{w=0.6} I didn't know you played an instrument."
+                m "We've got common ground somewhere after all."
+                m 1dsa "It... that's a lovely thought."
+                m 1eua "I'd be happy to come along, [player]. Thank you."
+            $ mas_gainAffection(5)
+    else:
+        if "music" not in persistent._ooa_been_at:
+            if not renpy.seen_label("monika_orchestra"):
+                m 1wub "Ooh, I didn't know you played, [player]!"
+                m "You'll have to fill me in on the specifics when we get home."
+                m 1eublb "What a wonderful thing for us to share~"
+            elif persistent._mas_pm_plays_instrument:
+                m 1hub "Music lessons! How wonderful."
+                m 1rtc "Let's see if I can remember what you play..."
+
+                if persistent._mas_pm_instrument_specific is not None:
+                    if persistent._mas_pm_instrument_specific == "singing" or persistent._mas_pm_instrument_specific == "voice" or persistent._mas_pm_instrument_specific == "sing":
+                        m 3etd "Wait, you don't play, you sing, right?"
+                    else:
+                        m 3etd "You play the [persistent._mas_pm_instrument_specific], right?"
+                    menu:
+                        "Yep.":
+                            m 1hua "I thought so!"
+                            m 1hubla "I can't wait to feel your music against my USB stick~"
+                            if mas_isMoniAff(lower=True):
+                                m 1wubsc "...{nw}"
+                                extend 1wkbssdrb "haha, wow, that sounded really dirty."
+                                m 1hka "Ahem."
+                        "No, that's not it.":
+                            m 3ttp "Darn."
+                            m 1ekb "Okay, I'll try and refresh my memory when we get back."
+                else:
+                    m "..."
+                    m 1rkd "No, sorry, it seems to have slipped my mind."
+                    m 1ekb "Okay, I'll try and refresh my memory when we get back."
+            else:
+                m 1eud "Wait, since when did you play, [player]?"
+                m 1wuo "Are you learning music for {i}me{/i}?"
+                m 1wub "That's so sweet of you!"
+                m 6fubla "I'd love to come along and feel you play."
+                m "Even if I can't hear you, knowing you're making the effort will be music enough to my ears~"
+                $ persistent._mas_pm_plays_instrument = True
+            $ persistent._ooa_been_at.add("music")
+        else:
+            m 3hsb "Okay!"
+            m "Lead the way, maestro of mine~"
+    $ mas_unlockEventLabel("ooa_monika_music")
     jump mas_dockstat_iostart
 
 label ooa_trips_mall:
@@ -1999,21 +2050,10 @@ label ooa_monika_party:
     m 1eub "When do you think we'll next be able to go to a party, [mas_get_player_nickname()]?"
     m "I remember quite liking the last one."
     m 5rtc "Let's see..."
-    if (persistent._mas_player_bday - datetime.timedelta(days=7)) < datetime.date.today() < persistent._mas_player_bday:
-        m 5eub "Well, someone's birthday is coming up, "
-        extend 5nub "not naming any [player]s here. Maybe you can indulge a little?"
-    elif mas_isD25Pre(_date=None):
+    if mas_isD25Pre(_date=None):
         m 5etb "Well, I know Christmas is coming up, so there should be at least a few parties going on for that!"
     elif mas_isD25Post(_date=None):
         m 5etb "Well, New Year's Eve is coming up soon. Maybe there'll be a party to celebrate that?"
-    elif (mas_o31 - datetime.timedelta(days=5)) < datetime.date.today() < o31:
-        m 5wub "Oh! Halloween's coming up. There's bound to be a party going on on {i}that{/i} day!"
-    elif (mas_f14 - datetime.timedelta(days=3)) < datetime.date.today() < mas_f14:
-        m 5fub "Valentine's Day is going to be soon... do people typically do parties for that day?"
-    elif (mas_monika_birthday - datetime.timedelta(days=7)) < datetime.date.today() < mas_monika_birthday:
-        m 5eua "Well, my birthday's coming up..."
-        m 5luc "Agh. Is saying that going to come off pushy?"
-        m 5lua "Oh well."
     else:
         m 5etc "Hm."
         m 5htsdrb "Well, there's always the chance someone's birthday is coming up? Statistically it's inevitable, even."
@@ -2301,6 +2341,52 @@ label ooa_monika_school:
 init 5 python:
     addEvent(
         Event(
+            persistent._mas_songs_database,
+            eventlabel="mas_song_iloveyouinasong",
+            category=[store.mas_songs.TYPE_SHORT],
+            prompt="I'll Have to Say I Love You in a Song",
+            random=False,
+            conditional='"music" in persistent._ooa_been_at',
+            action=EV_ACT_RANDOM,
+            aff_range=(mas_aff.AFFECTIONATE, None)
+        ),
+        code="SNG"
+    )
+
+label mas_song_iloveyouinasong:
+    m 1dkb "{i}~Well, I know it's kinda late~{i}"
+    m "{i}~I hope I didn't wake you~{i}"
+    m 1ekb "{i}~But what I gotta say can't wait~{i}"
+    m "{i}~I know you'd understand~{i}"
+    m 1wkd "{i}~Every time I tried to tell you~{i}"
+    m "{i}~The words just came out wrong~{i}"
+    m 1eublb "{i}~So I'll have to say I love you in a song~{i}"
+    m 1rublb "{i}~Yeah, I know it's kinda strange~{i}"
+    m "{i}~Every time I'm near you~{i}"
+    if persistent._mas_randchat_freq == 0:
+        m 1lublo "{i}~I just run out of things to say~{i}"
+    else:
+        m 1lublo "{i}~There's no end of things to say~{i}"
+    m 1eublb "{i}~I know you'd understand~{i}"
+    m 1dublb "{i}~Every time I tried to tell you~{i}"
+    m "{i}~The words just came out wrong~{i}"
+    m 1eublb "{i}~So I'll have to say I love you in a song~{i}"
+    m 1dublu "Hm..."
+    m 1ftp "The song's well written and all, but something's missing."
+    m "Something my voice alone can't give it."
+    if persistent._mas_pm_plays_instrument:
+        if persistent._mas_pm_instrument_specific == "singing" or persistent._mas_pm_instrument_specific == "voice" or persistent._mas_pm_instrument_specific == "sing":
+            m 1sua "Perhaps a duet with my darling [player]?"
+        else:
+            m 1sua "Perhaps my darling [player] could accompany me on the [persistent._mas_pm_instrument_specific]?"
+    else:
+        m 1sua "Perhaps the physical presence of my [player]?"
+    m 1hua "Ahaha~"
+    return
+
+init 5 python:
+    addEvent(
+        Event(
             persistent.event_database,
             eventlabel="ooa_monika_mall",
             category=["society","location"],
@@ -2400,7 +2486,7 @@ init 5 python:
             category=[store.mas_songs.TYPE_SHORT],
             prompt="Our House",
             random=False,
-            conditional='"campfire" in persistent._ooa_been_at',
+            conditional='"camping" in persistent._ooa_been_at',
             action=EV_ACT_RANDOM,
             aff_range=(mas_aff.AFFECTIONATE, None)
         ),
@@ -3023,3 +3109,161 @@ label ooa_monika_introduce_override:
     m 1eua "I feel like I would try extra hard to improve myself if you told me it made you proud of me."
     m 1hub "I hope it's the same the other way around, too."
     return
+
+init 1 python:
+    config.label_overrides["monika_orchestra"] = "ooa_monika_orchestra_override"
+
+label ooa_monika_orchestra_override:
+    m 3euc "Hey [player], do you listen to orchestral music?{nw}"
+    $ _history_list.pop()
+    menu:
+        m "Hey [player], do you listen to orchestral music?{fast}"
+        "Yes.":
+            $ persistent._mas_pm_like_orchestral_music = True
+            m 3eub "That's great!"
+            m 3eua "I love how such wonderful music can arise when so many different instruments are played together."
+            m 1eua "I'm amazed with how much practice musicians do to achieve that kind of synchronization."
+            m "It probably takes them a lot of dedication to do that."
+        "No.":
+
+            $ persistent._mas_pm_like_orchestral_music = False
+            m 1ekc "I guess it {i}is{/i} a pretty niche genre and doesn't suit everyone's ear."
+            m 1esa "You have to admit though, with so many players, there must be a lot of effort that goes into practicing for shows."
+    m 3eud "And I play the piano, I ought to know."
+    m 1ruc "..."
+    extend 1rud "actually, on that subject, [player] -"
+
+    if "music" not in persistent._ooa_been_at:
+        m 1eud "Do you play an instrument yourself?{nw}"
+        $ _history_list.pop()
+        menu:
+            m "Do you play an instrument yourself?{fast}"
+            "Yes.":
+                m 1sub "Really? What do you play?"
+                jump monika_orchestra_a_choice
+            "No.":
+                jump monika_orchestra_no_choice
+    else:
+        m 1eub "Since you've been taking me to your music lessons..."
+        m "...I'm going to assume that means you play an instrument."
+        m "So what do you play?"
+        m 1wusdrc "If anything. "
+        extend 1wusdrb "If you don't and I've completely misconstrued this situation, feel free to leave this blank."
+
+        label monika_orchestra_a_choice:
+            $ instrumentname = ""
+
+            while not instrumentname:
+                $ instrumentname = mas_input(
+                    "What instrument do you play?",
+                    allow=" abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_",
+                    length=15,
+                    screen_kwargs={"use_return_button": True}
+                ).strip(' \t\n\r')
+
+            $ persistent._mas_pm_instrument_specific = instrumentname.lower()
+
+            if persistent._mas_pm_instrument_specific == "cancel_input":
+                jump monika_orchestra_no_choice
+
+            elif persistent._mas_pm_instrument_specific == "piano":
+                $ persistent._mas_pm_plays_instrument = True
+                m 1wuo "Oh, that's really cool!"
+                m 1eua "Not many people I knew played the piano, so it's really nice to know you do too."
+                m 1eua "Do you have a lot of experience playing the piano?{nw}"
+                $ _history_list.pop()
+                menu:
+                    m "Do you have a lot of experience playing the piano?{fast}"
+                    "Yes.":
+
+                        $ persistent._mas_pm_has_piano_experience = mas_PIANO_EXP_HAS
+                        m 3hua "Really?"
+                        m 3sub "That's wonderful!"
+                        m 1eua "Maybe someday you can teach me and we can even have a duet!"
+                    "Not much.":
+
+                        $ persistent._mas_pm_has_piano_experience = mas_PIANO_EXP_SOME
+                        m 2eka "That's okay, [player]."
+                        m 2eua "After all, it's a pretty complicated instrument to pick up."
+                        m 4hua "But even if you don't have much experience, I'm sure we could learn together~"
+                    "I just started.":
+
+                        $ persistent._mas_pm_has_piano_experience = mas_PIANO_EXP_NONE
+                        m 1duc "I see."
+                        m 3hksdlb "It can be pretty difficult at the beginning,{w=0.2} {nw}"
+                        extend 3huu "but I'm sure if you keep practicing you'll even be able to play better than I can, [player]~"
+
+            elif persistent._mas_pm_instrument_specific == "harmonika":
+                m 1hub "Wow, I've always wanted to try the harmonik--"
+                m 3eub "...Oh!"
+
+                if mas_isMoniUpset(lower=True):
+                    m 3esa "Did you do that for me?"
+                    m 1eka "That's actually kinda sweet..."
+                    m "Little things like this really do cheer me up. Thank you, [player]."
+
+                elif mas_isMoniHappy(lower=True):
+                    m 1eka "Aww... Did you do that for me?"
+                    m "That's so sweet!"
+                    m 1ekbsa "Cute little things like this really make me feel loved, [player]."
+                else:
+
+                    m 1eka "Aww, [player]...{w=1} Did you do that for me?"
+                    m "That's {i}sooo{/i} adorable!"
+                    show monika 5eubsu zorder MAS_MONIKA_Z at t11 with dissolve_monika
+                    m 5eubfu "And just so you know, you can play with me anytime you like..."
+                    m 5eubfa "Ehehe~"
+
+            elif persistent._mas_pm_instrument_specific == "harmonica":
+                m 1hub "Wow, I've always wanted to try the harmonica out!"
+                m 1eua "I would love to hear you play for me."
+                m 3eua "Maybe you could teach me how to play, too~"
+                m 4esa "Although..."
+                m 2esa "Personally, I prefer the {cps=*0.7}{i}harmonika{/i}{/cps}..."
+                m 2eua "..."
+                m 4hub "Ahaha! That was so silly, I'm only kidding, [player]~"
+                $ persistent._mas_pm_plays_instrument = True
+            elif persistent._mas_pm_instrument_specific == "singing" or persistent._mas_pm_instrument_specific == "voice" or persistent._mas_pm_instrument_specific == "sing":
+                m 1sub "Ohh, you {i}sing{/i}!"
+                m 4eub "That's an excellent choice."
+                m "It may sound easy to some, but your voice is a very temperamental instrument in its own right, and needs just as much care and effort to hone."
+                m 1eua "I would love to hear you sing for me."
+                m 3eua "Maybe you could teach me how to sing, too~"
+                $ persistent._mas_pm_plays_instrument = True
+            else:
+                m 1hub "Wow, I've always wanted to try the [persistent._mas_pm_instrument_specific] out!"
+                m 1eua "I would love to hear you play for me."
+                m 3eua "Maybe you could teach me how to play, too~"
+                m 1wuo "Oh! Would a duet between the [persistent._mas_pm_instrument_specific] and the piano sound nice?"
+                m 1hua "Ehehe~"
+                $ persistent._mas_pm_plays_instrument = True
+            jump monika_orchestra_an_ending
+
+        label monika_orchestra_no_choice:
+            $ persistent._mas_pm_plays_instrument = False
+            if "music" not in persistent._ooa_been_at:
+                m 1euc "I see..."
+            else:
+                m 1hka "Aw, okay."
+                m "Sorry I got the wrong end of the stick then!"
+            m 1eka "You should try to pick up an instrument that interests you, sometime."
+            m 3eua "Playing the piano opened up a whole new world of expression for me. It's an incredibly rewarding experience."
+            m 1hua "Besides, playing music has tons of benefits!"
+            m 3eua "For example, it can help relieve stress, and also gives you a sense of achievement."
+            m 1eua "Writing down some of your own compositions is fun, too! I often lost track of time practicing because of how immersed I was."
+            m 1lksdla "Ah, was I rambling again, [player]?"
+            m 1hksdlb "Sorry!"
+            m 1eka "Anyhow, you should really see if anything catches your fancy."
+            m 1hua "I would be very happy to hear you play."
+
+    label monika_orchestra_an_ending:
+        if (
+            persistent._mas_pm_like_orchestral_music
+            and not renpy.seen_label("monika_add_custom_music_instruct")
+            and not persistent._mas_pm_added_custom_bgm
+        ):
+            m 1eua "Oh, and if you ever feel like sharing your favorite
+    orchestral music with me, [player], it's really easy to do so!"
+            m 3eua "All you have to do is follow these steps..."
+            call monika_add_custom_music_instruct
+    return "derandom"
